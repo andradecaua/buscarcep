@@ -1,11 +1,13 @@
 package app
 
 import (
+	"errors"
 	"fmt"
 	"io"
 	"log"
 	"net/http"
 	"os"
+	"strings"
 
 	"github.com/urfave/cli"
 )
@@ -41,17 +43,25 @@ func buscar(c *cli.Context) {
 	response, erro := http.Get(url)
 
 	if erro != nil {
-		log.Fatal("Ouve um erro ao procurar pelo cep")
+		erro := errors.New("ouve um erro ao encontrar o cep")
+		log.Fatal(erro)
 	}
 
 	body, err := io.ReadAll(response.Body)
 	response.Body.Close()
 
 	if err != nil {
-		log.Fatal("Ouve um erro ao ler a resposta")
+		erro := errors.New("ouve um erro ao ler a resposta")
+		log.Fatal(erro)
 	}
 
 	bodyString := string(body)
+
+	if strings.Contains(bodyString, "erro") {
+		erro := errors.New("ouve um erro ao encontrar o cep")
+		log.Fatal(erro)
+	}
+
 	defer fmt.Println(bodyString)
 	defer fmt.Println("Mostrando os dados da cidade")
 }
