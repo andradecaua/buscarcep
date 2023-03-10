@@ -51,7 +51,7 @@ func buscar(c *cli.Context) {
 		log.Fatal("Ouve um erro ao ler a resposta")
 	}
 
-	bodyString := string(body)
+	// bodyString := string(body)
 	defer fmt.Println(bodyString)
 	defer fmt.Println("Mostrando os dados da cidade")
 }
