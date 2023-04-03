@@ -3,55 +3,56 @@ package app
 import (
 	"fmt"
 	"io"
-	"log"
 	"net/http"
-	"os"
-
-	"github.com/urfave/cli"
+	"strings"
 )
 
 // Busca e retorna o cep para o client
-func BuscarCep() *cli.App {
-	app := cli.NewApp()
-	app.Name = "Buscar cep"
-	app.Usage = "Busca o cep informado e retorna a cidade"
+func BuscarCep() string {
+	defer recuperarExecucao()
+	var cep string
 
-	flags := []cli.Flag{
-		cli.StringFlag{
-			Name:  "cep",
-			Value: "55641715",
-			Usage: "Busca o cep informado",
-		},
+	fmt.Println("------------------------")
+	fmt.Println("Buscar Cep Iniciando")
+	fmt.Print("\nPor gentileza informe o cep: ")
+	_, err := fmt.Scan(&cep)
+
+	if err != nil {
+		panic(err)
 	}
-
-	app.Commands = []cli.Command{
-		{
-			Name:   "buscar",
-			Flags:  flags,
-			Action: buscar,
-		},
-	}
-
-	app.Run(os.Args)
-	return app
+	return buscar(cep)
 }
 
-func buscar(c *cli.Context) {
-	var url string = "https://viacep.com.br/ws/" + c.String("cep") + "/json/"
+func buscar(cep string) (dadosCidade string) {
+	url := "https://viacep.com.br/ws/" + cep + "/json/"
 	response, erro := http.Get(url)
 
 	if erro != nil {
-		log.Fatal("Ouve um erro ao procurar pelo cep")
+		erro := "ouve um erro ao encontrar o cep"
+		return erro
 	}
 
 	body, err := io.ReadAll(response.Body)
 	response.Body.Close()
 
 	if err != nil {
-		log.Fatal("Ouve um erro ao ler a resposta")
+		erro := "ouve um erro ao ler a resposta"
+		return erro
 	}
 
-	// bodyString := string(body)
-	defer fmt.Println(bodyString)
+	bodyString := string(body)
+
+	if strings.Contains(bodyString, "400") || strings.Contains(bodyString, "erro") {
+		erro := "ouve um erro com a sua requisição"
+		return erro
+	}
+
 	defer fmt.Println("Mostrando os dados da cidade")
+	return bodyString
+}
+
+func recuperarExecucao() {
+	if r := recover(); r != nil {
+		fmt.Println("Execução recuperada com sucesso!")
+	}
 }
