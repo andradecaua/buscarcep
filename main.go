@@ -3,23 +3,22 @@ package main
 import (
 	"buscarcep/app"
 	"fmt"
+	"io"
+	"log"
+	"net/http"
 )
 
 func main() {
 	defer recuperarExecucao()
-	dadosCidade := app.BuscarCep()
-	var mostrarNovamente int
-	fmt.Println(dadosCidade)
-	fmt.Print("\n Deseja fazer uma nova busca ? 1 para sim ou 2 para não: ")
-	_, erro := fmt.Scan(&mostrarNovamente)
 
-	if erro != nil {
-		panic(erro)
-	}
+	http.HandleFunc("/cep", func(resWriter http.ResponseWriter, req *http.Request) {
+		cep := req.URL.Query().Get("cep")
+		dadosCidade, result := app.Buscar(cep)
+		resWriter.WriteHeader(result)
+		io.WriteString(resWriter, dadosCidade)
+	})
 
-	if mostrarNovamente == 1 {
-		main()
-	}
+	log.Fatal(http.ListenAndServe(":3000", nil))
 }
 
 func recuperarExecucao() {

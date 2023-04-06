@@ -7,29 +7,14 @@ import (
 	"strings"
 )
 
-// Busca e retorna o cep para o client
-func BuscarCep() string {
-	defer recuperarExecucao()
-	var cep string
-
-	fmt.Println("------------------------")
-	fmt.Println("Buscar Cep Iniciando")
-	fmt.Print("\nPor gentileza informe o cep: ")
-	_, err := fmt.Scan(&cep)
-
-	if err != nil {
-		panic(err)
-	}
-	return buscar(cep)
-}
-
-func buscar(cep string) (dadosCidade string) {
+// Buscar e retorna o cep para o client
+func Buscar(cep string) (dadosCidade string, result int) {
 	url := "https://viacep.com.br/ws/" + cep + "/json/"
 	response, erro := http.Get(url)
 
 	if erro != nil {
 		erro := "ouve um erro ao encontrar o cep"
-		return erro
+		return erro, 403
 	}
 
 	body, err := io.ReadAll(response.Body)
@@ -37,18 +22,17 @@ func buscar(cep string) (dadosCidade string) {
 
 	if err != nil {
 		erro := "ouve um erro ao ler a resposta"
-		return erro
+		return erro, 403
 	}
 
 	bodyString := string(body)
 
 	if strings.Contains(bodyString, "400") || strings.Contains(bodyString, "erro") {
 		erro := "ouve um erro com a sua requisição"
-		return erro
+		return erro, 403
 	}
 
-	defer fmt.Println("Mostrando os dados da cidade")
-	return bodyString
+	return bodyString, 200
 }
 
 func recuperarExecucao() {
